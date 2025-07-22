@@ -8,6 +8,7 @@ FINNHUB_KEY = os.getenv("FINNHUB_KEY")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
+
 # Ambil data 1M XAUUSD (5 candle terakhir)
 def get_xauusd_1m():
     url = "https://finnhub.io/api/v1/forex/candle"
@@ -20,11 +21,13 @@ def get_xauusd_1m():
     response = requests.get(url, params=params)
     return response.json()
 
+
 # Kirim alert ke Telegram
 def send_alert(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message}
     requests.post(url, data=payload)
+
 
 # Cek apakah terjadi sweep liquidity (candle terakhir break low/high sebelumnya)
 def detect_liquidity_sweep(data):
@@ -40,6 +43,7 @@ def detect_liquidity_sweep(data):
     elif last_low < prev_low:
         return True, "sell-side liquidity sweep"
     return False, ""
+
 
 # Deteksi CHoCH sederhana (reversal mikro)
 def detect_choch(data):
@@ -59,12 +63,15 @@ def detect_choch(data):
         return True
     return False
 
+
 # Jam killzone saja
+
 
 def is_killzone():
     now_utc = datetime.utcnow()
     hour = now_utc.hour
     return (6 <= hour < 8) or (12 <= hour < 14)  # WIB = UTC+7
+
 
 # Loop utama
 if __name__ == "__main__":
@@ -81,8 +88,12 @@ if __name__ == "__main__":
 
                 if sweep_ok and choch_ok:
                     price = data["c"][-1]
-                    send_alert(f"🚨 SCALPING SETUP VALID (XAUUSD 1M)\n{ sweep_type } + CHoCH terdeteksi\nHarga: {price}")
-                print(f"[{datetime.now()}] ✅ Cek struktur selesai (killzone aktif)")
+                    send_alert(
+                        f"🚨 SCALPING SETUP VALID (XAUUSD 1M)\n{ sweep_type } + CHoCH terdeteksi\nHarga: {price}"
+                    )
+                print(
+                    f"[{datetime.now()}] ✅ Cek struktur selesai (killzone aktif)"
+                )
             else:
                 print(f"[{datetime.now()}] ⏸️ Di luar jam killzone")
 
