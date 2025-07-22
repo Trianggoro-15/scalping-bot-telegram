@@ -79,7 +79,7 @@ def atr(data):
 
 
 # ===================== BACKTEST LOOP =====================
-window = 20  # jumlah candle yang dianalisis per loop
+window = 15  # jumlah candle yang dianalisis per loop (5M timeframe)
 signals = []
 
 for i in range(window, len(data["c"])):
