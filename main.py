@@ -7,7 +7,6 @@ FINNHUB_KEY = os.getenv("FINNHUB_KEY")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-
 # Ambil candle 1M XAUUSD
 def get_xauusd_1m():
     url = "https://finnhub.io/api/v1/forex/candle"
@@ -20,13 +19,11 @@ def get_xauusd_1m():
     response = requests.get(url, params=params)
     return response.json()
 
-
 # Kirim alert ke Telegram
 def send_alert(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message}
     requests.post(url, data=payload)
-
 
 # Sweep liquidity
 def detect_liquidity_sweep(data):
@@ -39,7 +36,6 @@ def detect_liquidity_sweep(data):
         return True, "buy-side liquidity sweep"
     return False, ""
 
-
 # CHoCH sederhana
 def detect_choch(data):
     o, c = data["o"], data["c"]
@@ -50,35 +46,30 @@ def detect_choch(data):
     now_dir = "bull" if c[-1] > o[-1] else "bear"
     return (prev_dir == last_dir and now_dir != last_dir)
 
-
 # Orderblock deteksi
-
 
 def get_last_orderblock(data):
     o, c = data["o"]
-    for i in range(len(o) - 3, 0, -1):
+    for i in range(len(o)-3, 0, -1):
         direction = "bear" if c[i] < o[i] else "bull"
         return (min(o[i], c[i]), max(o[i], c[i]))
     return None, None
-
 
 def is_touching_orderblock(price, ob_low, ob_high):
     if ob_low is None or ob_high is None:
         return False
     return ob_low <= price <= ob_high
 
-
 # Deteksi FVG biasa dan IFVG (inverse)
 def detect_fvg(data):
     h, l = data["h"], data["l"]
     fvg_zones = []
-    for i in range(len(h) - 2):
-        if h[i] < l[i + 2]:  # Bullish FVG
-            fvg_zones.append((h[i], l[i + 2]))
-        if l[i] > h[i + 2]:  # Bearish FVG
-            fvg_zones.append((h[i + 2], l[i]))
+    for i in range(len(h)-2):
+        if h[i] < l[i+2]:  # Bullish FVG
+            fvg_zones.append((h[i], l[i+2]))
+        if l[i] > h[i+2]:  # Bearish FVG
+            fvg_zones.append((h[i+2], l[i]))
     return fvg_zones
-
 
 def is_price_in_fvg(price, fvg_zones):
     for zone in fvg_zones:
@@ -86,9 +77,7 @@ def is_price_in_fvg(price, fvg_zones):
             return True
     return False
 
-
 # RR filter
-
 
 def rr_valid(entry, sl, target):
     if sl == 0:
@@ -96,14 +85,11 @@ def rr_valid(entry, sl, target):
     rr = abs(target - entry) / abs(sl)
     return rr >= 2
 
-
 # Killzone waktu aktif bot
-
 
 def is_killzone():
     hour = datetime.utcnow().hour
     return (6 <= hour < 8) or (12 <= hour < 14)
-
 
 # Main loop
 if __name__ == "__main__":
@@ -126,8 +112,7 @@ if __name__ == "__main__":
                 sl = abs(price - ob_low) if ob_low else 0
                 tp = abs(price - data["h"][-2])  # target = high sebelumnya
 
-                if sweep_ok and choch_ok and (ob_ok or fvg_ok) and rr_valid(
-                        price, sl, tp):
+                if sweep_ok and choch_ok and (ob_ok or fvg_ok) and rr_valid(price, sl, tp):
                     send_alert(
                         f"🚨 VALID SETUP [XAUUSD 1M]\n{sweep_type} + CHoCH\nPrice: {price}\nArea: {'OB' if ob_ok else 'FVG'}\nRR: >= 1:2"
                     )
