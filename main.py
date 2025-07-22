@@ -1,0 +1,21 @@
+import os
+import requests
+from time import sleep
+from datetime import datetime
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+
+
+def send_alert(message):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": message}
+    requests.post(url, data=payload)
+
+
+# Tes kirim pesan setiap 10 menit (simulasi alert dummy)
+if __name__ == "__main__":
+    while True:
+        now = datetime.now().strftime("%H:%M:%S")
+        send_alert(f"🚨 Tes alert jam {now} (bot aktif)")
+        sleep(600)
